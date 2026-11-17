@@ -186,11 +186,11 @@ Ensure the repository allows GitHub Actions to write packages. Images are publis
 
 ### Grafana Dashboard
 
-![Grafana URL Shortener overview dashboard](docs/images/grafana-dashboard.png)
+![Grafana URL Shortener overview dashboard](docs/images/grafana-dashboard.png.png)
 
 ### GitHub Actions CI/CD Pipeline
 
-![GitHub Actions CI/CD workflow](docs/images/github-actions-pipeline.png)
+![GitHub Actions CI/CD workflow](docs/images/github-actions-pipeline.png.png)
 
 ## Repository Layout
 
