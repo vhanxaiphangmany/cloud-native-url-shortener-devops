@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    platform: cloud-native-url-shortener
+
+scrape_configs:
+  # Two API targets are scraped directly to retain per-replica health visibility.
+  - job_name: fastapi
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api1:8000", "api2:8000"]
+        labels:
+          service: url-shortener-api
+
+  # Exporters expose Redis and PostgreSQL server metrics.
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+        labels:
+          service: redis
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+        labels:
+          service: postgres
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]

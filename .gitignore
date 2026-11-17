@@ -1,0 +1,48 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Docker and local secrets/state
+.env
+.env.*
+!.env.example
+*.log
+docker-compose.override.yml
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
