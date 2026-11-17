@@ -17,9 +17,7 @@ from sqlalchemy import DateTime, Integer, String, func, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://shortener:shortener@postgres:5432/shortener"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://shortener:shortener@postgres:5432/shortener")
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://localhost:8080").rstrip("/")
 CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "3600"))
@@ -54,9 +52,7 @@ class Link(Base):
     slug: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     target_url: Mapped[str] = mapped_column(String(2048))
     clicks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 @asynccontextmanager
@@ -128,9 +124,7 @@ async def health():
             raise RuntimeError("Redis client is not initialized")
         await cache.ping()
     except Exception as exc:
-        raise HTTPException(
-            status_code=503, detail="A required dependency is unavailable"
-        ) from exc
+        raise HTTPException(status_code=503, detail="A required dependency is unavailable") from exc
     return {
         "status": "healthy",
         "dependencies": {"postgres": "healthy", "redis": "healthy"},
@@ -151,21 +145,14 @@ async def metrics():
 async def create_link(payload: ShortenRequest):
     parsed = urlparse(str(payload.url))
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise HTTPException(
-            status_code=422, detail="Only absolute HTTP(S) URLs are supported"
-        )
+        raise HTTPException(status_code=422, detail="Only absolute HTTP(S) URLs are supported")
     async with SessionLocal() as session:
         for _ in range(5):
-            slug = (
-                payload.custom_code
-                or secrets.token_urlsafe(6).replace("-", "a").replace("_", "b")[:8]
-            )
+            slug = payload.custom_code or secrets.token_urlsafe(6).replace("-", "a").replace("_", "b")[:8]
             existing = await session.scalar(select(Link.id).where(Link.slug == slug))
             if existing is not None:
                 if payload.custom_code:
-                    raise HTTPException(
-                        status_code=409, detail="Custom code is already in use"
-                    )
+                    raise HTTPException(status_code=409, detail="Custom code is already in use")
                 continue
             link = Link(slug=slug, target_url=str(payload.url))
             session.add(link)
@@ -175,9 +162,7 @@ async def create_link(payload: ShortenRequest):
             except Exception:
                 await session.rollback()
                 if payload.custom_code:
-                    raise HTTPException(
-                    status_code=409, detail="Custom code is already in use"
-                )
+                    raise HTTPException(status_code=409, detail="Custom code is already in use")
                 continue
             if cache is not None:
                 await cache.set(f"link:{slug}", link.target_url, ex=CACHE_TTL_SECONDS)
@@ -187,9 +172,7 @@ async def create_link(payload: ShortenRequest):
                 target_url=link.target_url,
                 created_at=link.created_at,
             )
-    raise HTTPException(
-        status_code=503, detail="Could not allocate a unique short code"
-    )
+    raise HTTPException(status_code=503, detail="Could not allocate a unique short code")
 
 
 @app.get(
@@ -225,11 +208,7 @@ async def redirect(code: str):
             target = link.target_url
             if cache is not None:
                 await cache.set(f"link:{code}", target, ex=CACHE_TTL_SECONDS)
-        await session.execute(
-            update(Link)
-            .where(Link.slug == code)
-            .values(clicks=Link.clicks + 1)
-        )
+        await session.execute(update(Link).where(Link.slug == code).values(clicks=Link.clicks + 1))
         await session.commit()
     REDIRECTS.inc()
     return RedirectResponse(url=target, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
